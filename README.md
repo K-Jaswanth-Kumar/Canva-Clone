@@ -1,6 +1,5 @@
 # Canva-Clone
 
----
 
 # Project README
 
