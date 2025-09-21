@@ -1,8 +1,5 @@
 # Canva-Clone
 
-Perfect 👍 I'll create a **developer-focused README** that explains the project structure, setup, and how to run everything locally.
-
----
 
 # Project README
 
