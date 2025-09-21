@@ -16,7 +16,7 @@ export default function MainEditor() {
   const [loadAttempted, setLoadAttempted] = useState(false);
   const [error, setError] = useState(null);
 
-  const { canvas, setDesignId, resetStore } = useEditorStore();
+  const { canvas, setDesignId, resetStore, setName } = useEditorStore();
   useEffect(() => {
     // reset the store
     resetStore();
@@ -64,7 +64,7 @@ export default function MainEditor() {
       const design = response.data;
       if (design) {
         setDesignId(designId);
-
+        setName(design.name);
         try {
           if (design.canvasData) {
             canvas.clear();
@@ -92,7 +92,7 @@ export default function MainEditor() {
               return true;
             }
             canvas
-              .loadFromJSON(design.canvasData)
+              .loadFromJSON(canvasData)
               .then((canvas) => canvas.requestRenderAll());
           } else {
             canvas.clear();
@@ -123,7 +123,7 @@ export default function MainEditor() {
     } else if (!designId) {
       router.replace("/");
     }
-  }, [canvas, designId, loadAttempted, loadDesign]);
+  }, [canvas, designId, loadAttempted, loadDesign, router]);
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <Header />
