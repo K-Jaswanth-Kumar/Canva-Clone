@@ -133,14 +133,14 @@ export const textPresets = [
   {
     name: "Body Text",
     text: "Add a little bit of body text",
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "normal",
     fontFamily: "Inter, sans-serid",
   },
   {
     name: "Caption",
     text: "Add a caption",
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: "normal",
     fontFamily: "Inter, sans-serid",
     fontStyle: "normal",

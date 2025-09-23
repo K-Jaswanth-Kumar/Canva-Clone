@@ -54,5 +54,44 @@ export const addShapeToCanvas = async (canvas, shapeType, customProps = {}) => {
       canvas.renderAll();
       return shape;
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("Failed adding shape to canvas", e);
+    return null;
+  }
+};
+
+export const addTextToCanvas = async (
+  canvas,
+  text,
+  options = {},
+  withBackground = false
+) => {
+  if (!canvas) return null;
+
+  try {
+    const { IText } = await import("fabric");
+
+    const defaultProps = {
+      left: 100,
+      top: 100,
+      fontSize: 24,
+      fontFamily: "Arial",
+      fill: "#000000",
+      padding: withBackground ? 10 : 0,
+      textAlign: "left",
+      id: `text-${Date.now()}`,
+    };
+
+    const textObj = new IText(text, {
+      ...defaultProps,
+      ...options,
+    });
+    canvas.add(textObj);
+    canvas.setActiveObject(textObj);
+    canvas.renderAll();
+    return textObj;
+  } catch (e) {
+    console.error("Failed adding text to canvas", e);
+    return null;
+  }
 };
