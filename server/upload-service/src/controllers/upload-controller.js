@@ -6,16 +6,18 @@ const uploadMedia = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: "No file found",
+        message: "No File Found!",
       });
     }
-    const { originalName, mimetype, size, width, height } = req.file;
+
+    const { originalname, mimetype, size, width, height } = req.file;
     const { userId } = req.user;
 
     const cloudinaryResult = await uploadMediaToCloudinary(req.file);
+
     const newlyCreatedMedia = new Media({
       userId,
-      name: originalName,
+      name: originalname,
       cloudinaryId: cloudinaryResult.public_id,
       url: cloudinaryResult.secure_url,
       mimeType: mimetype,
@@ -33,12 +35,12 @@ const uploadMedia = async (req, res) => {
   } catch (e) {
     res.status(500).json({
       success: false,
-      message: "Error while creating asset",
+      message: "Error creating asset",
     });
   }
 };
 
-const getAllMediaByUser = async (req, res) => {
+const getAllMediasByUser = async (req, res) => {
   try {
     const medias = await Media.find({ userId: req.user.userId }).sort({
       createdAt: -1,
@@ -51,9 +53,9 @@ const getAllMediaByUser = async (req, res) => {
   } catch (e) {
     res.status(500).json({
       success: false,
-      message: "Error getting assets",
+      message: "Failed to fetch assets",
     });
   }
 };
 
-module.exports = { uploadMedia, getAllMediaByUser };
+module.exports = { uploadMedia, getAllMediasByUser };

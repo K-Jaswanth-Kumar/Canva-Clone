@@ -3,9 +3,10 @@ const authenticatedRequest = (req, res, next) => {
 
   if (!userId) {
     return res.status(401).json({
-      error: "Access Denied! Please login to continue.",
+      error: "Access denied! Please login to continue",
     });
   }
+
   req.user = { userId };
   next();
 };

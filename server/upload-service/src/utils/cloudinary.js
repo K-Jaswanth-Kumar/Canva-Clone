@@ -16,10 +16,11 @@ const uploadMediaToCloudinary = (file) => {
         if (error) {
           reject(error);
         } else {
-          resolve(error);
+          resolve(result);
         }
       }
     );
+
     uploadStream.end(file.buffer);
   });
 };

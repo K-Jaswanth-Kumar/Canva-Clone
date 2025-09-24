@@ -11,10 +11,9 @@ const mediaSchema = new mongoose.Schema({
   height: Number,
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
 });
 
 const Media = mongoose.models.Media || mongoose.model("Media", mediaSchema);
-
 module.exports = Media;
