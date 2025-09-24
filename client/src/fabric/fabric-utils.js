@@ -95,3 +95,69 @@ export const addTextToCanvas = async (
     return null;
   }
 };
+
+export const toggleDrawingMode = (
+  canvas,
+  isDrawingMode,
+  drawingColor = "#000000",
+  brushWidth = 5
+) => {
+  if (!canvas) return null;
+
+  try {
+    canvas.isDrawingMode = isDrawingMode;
+    if (isDrawingMode) {
+      canvas.freeDrawingBrush.color = drawingColor;
+      canvas.freeDrawingBrush.width = brushWidth;
+    }
+
+    return true;
+  } catch (e) {
+    console.error("Failed to toggle drawing mode", e);
+    return false;
+  }
+};
+
+export const toggleEraseMode = (
+  canvas,
+  isErasing,
+  prevColor = "#000000",
+  eraserWidth = 20
+) => {
+  if (!canvas || !canvas.freeDrawingBrush) return false;
+
+  try {
+    if (isErasing) {
+      canvas.freeDrawingBrush.color = "#ffffff";
+      canvas.freeDrawingBrush.width = eraserWidth;
+    } else {
+      canvas.freeDrawingBrush.color = prevColor;
+      canvas.freeDrawingBrush.width = 5;
+    }
+
+    return true;
+  } catch (e) {
+    console.error("Failed to toggle eraser mode", e);
+  }
+};
+
+export const updateDrawingBrush = (canvas, properties = {}) => {
+  if (!canvas || !canvas.freeDrawingBrush) return false;
+
+  try {
+    const { color, width, opacity } = properties;
+    if (color !== undefined) {
+      canvas.freeDrawingBrush.color = color;
+    }
+    if (width !== undefined) {
+      canvas.freeDrawingBrush.width = width;
+    }
+    if (opacity !== undefined) {
+      canvas.freeDrawingBrush.opacity = opacity;
+    }
+    return true;
+  } catch (e) {
+    console.error("Failed to update brush", e);
+    return false;
+  }
+};
