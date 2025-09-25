@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getSession } from "next-auth/react";
+import { fetchWithAuth } from "./base-service";
 
 const API_URL = process.env.API_URL || "http://localhost:5000";
 
@@ -7,13 +8,14 @@ export async function uploadFileWithAuth(file, metaData = {}) {
   const session = await getSession();
 
   if (!session) {
-    throw new Error("Not Authenticated");
+    throw new Error("Not authenticated");
   }
 
   const formData = new FormData();
   formData.append("file", file);
-  Object.entries(metaData).forEach(([key, values]) => {
-    formData.append(key, values);
+
+  Object.entries(metaData).forEach(([key, value]) => {
+    formData.append(key, value);
   });
 
   try {
@@ -26,6 +28,22 @@ export async function uploadFileWithAuth(file, metaData = {}) {
 
     return response.data;
   } catch (e) {
-    throw new Error("Image Upload Failed");
+    console.error("Upload failed:", e.response?.data || e.message || e);
+    throw new Error("Upload Failed");
+  }
+}
+
+export async function generateImageFromAI(prompt) {
+  try {
+    const response = await fetchWithAuth("/v1/media/ai-image-generate", {
+      method: "POST",
+      body: {
+        prompt,
+      },
+    });
+
+    return response;
+  } catch (e) {
+    throw new Error(e.message);
   }
 }
