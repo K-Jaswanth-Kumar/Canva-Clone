@@ -15,23 +15,25 @@ import { useEditorStore } from "@/store";
 import { Check, Palette } from "lucide-react";
 import { useState } from "react";
 
-export default function SetttingsPanel() {
+function SettingsPanel() {
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
+  const { canvas, markAsModified } = useEditorStore();
 
-  const { canvas } = useEditorStore();
+  const handleColorChange = (event) => {
+    setBackgroundColor(event.target.value);
+  };
+
+  const handleColorPresetApply = (getCurrentColor) => {
+    setBackgroundColor(getCurrentColor);
+  };
 
   const handleApplyChanges = () => {
     if (!canvas) return;
     canvas.set("backgroundColor", backgroundColor);
     canvas.renderAll();
-    centerCanvas(canvas);
-  };
-  const handleColorChange = (e) => {
-    setBackgroundColor(e.target.value);
-  };
 
-  const handleColorPresetApply = (color) => {
-    setBackgroundColor(color);
+    centerCanvas(canvas);
+    markAsModified();
   };
 
   return (
@@ -79,16 +81,18 @@ export default function SetttingsPanel() {
               type={"text"}
               value={backgroundColor}
               onChange={handleColorChange}
-              className={"flex-1"}
+              className="flex-1"
               placeholder="#FFFFFF"
             />
           </div>
         </div>
-        <Separator className={"my-4"} />
-        <Button className={"w-full"} onClick={handleApplyChanges}>
+        <Separator className="my-4" />
+        <Button className="w-full" onClick={handleApplyChanges}>
           Apply Changes
         </Button>
       </div>
     </div>
   );
 }
+
+export default SettingsPanel;

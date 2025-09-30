@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-export default function DrawPanel() {
+function DrawingPanel() {
   const { canvas } = useEditorStore();
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [isErasing, setIsErasing] = useState(false);
@@ -40,31 +40,30 @@ export default function DrawPanel() {
     if (newMode && isErasing) {
       setIsErasing(false);
     }
+
     toggleDrawingMode(canvas, newMode, drawingColor, brushWidth);
   };
 
   const handleDrawingColorChange = (color) => {
     setDrawingColor(color);
+
     if (canvas && isDrawingMode && !isErasing) {
       updateDrawingBrush(canvas, { color });
     }
   };
 
   const handleBrushWidthChange = (width) => {
-    const clampedWidth = Math.max(1, Math.min(30, width));
-    setBrushWidth(clampedWidth);
+    setBrushWidth(width);
     if (canvas && isDrawingMode) {
-      updateDrawingBrush(canvas, {
-        width: isErasing ? clampedWidth * 2 : clampedWidth,
-      });
+      updateDrawingBrush(canvas, { width: isErasing ? width * 2 : width });
     }
   };
 
-  const handleOpacityChange = (opacity) => {
-    const clampedOpacity = Math.max(1, Math.min(100, opacity));
-    setDrawingOpacity(clampedOpacity);
-    if (canvas && isDrawingMode && !isErasing) {
-      updateDrawingBrush(canvas, { opacity: clampedOpacity / 100 });
+  const handleDrawingOpacityChange = (value) => {
+    const opacity = Number(value[0]);
+    setDrawingOpacity(opacity);
+    if (canvas && isDrawingMode) {
+      updateDrawingBrush(canvas, { opacity: opacity / 100 });
     }
   };
 
@@ -75,13 +74,14 @@ export default function DrawPanel() {
 
     toggleEraseMode(canvas, newErasing, drawingColor, brushWidth * 2);
   };
+
   return (
     <div className="p-4">
       <div className="space-y-5">
         <Button
           variant={isDrawingMode ? "default" : "outline"}
           className={"w-full py-6 group transition-all"}
-          size={"lg"}
+          size="lg"
           onClick={handleToggleDrawingMode}
         >
           <PencilIcon
@@ -116,7 +116,7 @@ export default function DrawPanel() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="colors">
-                <div className="space=y-3">
+                <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <Label>Color Palette</Label>
                     <div
@@ -128,13 +128,15 @@ export default function DrawPanel() {
                     {drawingPanelColorPresets.map((color) => (
                       <div key={color}>
                         <button
-                          className={`w-10 h-10 rounded-full border transition-transform hover:scale-110 ${
-                            color === drawingColor
-                              ? "ring-1 ring-offset-2 ring-primary"
-                              : ""
-                          }`}
-                          style={{ backgroundColor: color }}
+                          className={`w-10 h-10 rounded-full border transition-transform
+                            hover:scale-110 ${
+                              color === drawingColor
+                                ? "ring-1 ring-offset-2 ring-primary"
+                                : ""
+                            }
+                            `}
                           onClick={() => handleDrawingColorChange(color)}
+                          style={{ backgroundColor: color }}
                         />
                       </div>
                     ))}
@@ -142,17 +144,17 @@ export default function DrawPanel() {
                   <div className="flex mt-5 space-x-2">
                     <div className="relative">
                       <Input
-                        type={"color"}
+                        type="color"
                         value={drawingColor}
                         onChange={(e) =>
                           handleDrawingColorChange(e.target.value)
                         }
-                        className="w-12 h-10 p-1 cursor-pointer"
+                        className={"w-12 h-10 p-1 cursor-pointer"}
                         disabled={isErasing}
                       />
                     </div>
                     <Input
-                      type={"text"}
+                      type="text"
                       value={drawingColor}
                       onChange={(e) => handleDrawingColorChange(e.target.value)}
                       className={"flex-1"}
@@ -167,24 +169,16 @@ export default function DrawPanel() {
                     Brush Size
                   </Label>
                   <div className="flex items-center space-x-3">
-                    <Minus
-                      className="h-4 w-4 text-gray-500"
-                      onClick={() => handleBrushWidthChange(brushWidth - 1)}
-                    />
+                    <Minus className="h-4 w-4 text-gray-500" />
                     <Slider
                       value={[brushWidth]}
                       min={1}
                       max={30}
                       step={1}
-                      onValueChange={(value) =>
-                        handleBrushWidthChange(value[0])
-                      }
-                      className={"flex-1"}
+                      onValueChange={(value) => setBrushWidth(value[0])}
+                      className="flex-1"
                     />
-                    <Plus
-                      className="h-4 w-4 text-gray-500"
-                      onClick={() => handleBrushWidthChange(brushWidth + 1)}
-                    />
+                    <Plus className="h-4 w-4 text-gray-500" />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {brushSizes.map((size) => (
@@ -215,18 +209,19 @@ export default function DrawPanel() {
                       min={1}
                       max={100}
                       step={1}
-                      onValueChange={(value) => handleOpacityChange(value[0])}
-                      className={"flex-1"}
+                      onValueChange={(value) =>
+                        handleDrawingOpacityChange(value)
+                      }
                     />
                   </div>
                 </div>
               </TabsContent>
               <TabsContent value="tools">
                 <Button
+                  onClick={handleToggleErasing}
                   variant={isErasing ? "destructive" : "outline"}
                   className={"w-full py-6"}
-                  size={"lg"}
-                  onClick={() => handleToggleErasing()}
+                  size="lg"
                 >
                   <EraserIcon className="mr-2 w-5 h-5" />
                   {isErasing ? "Stop Erasing" : "Eraser mode"}
@@ -239,3 +234,5 @@ export default function DrawPanel() {
     </div>
   );
 }
+
+export default DrawingPanel;

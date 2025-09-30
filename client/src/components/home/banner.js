@@ -5,24 +5,37 @@ import { Button } from "../ui/button";
 import { useState } from "react";
 import { saveDesign } from "@/services/design-service";
 import { useRouter } from "next/navigation";
+import { useEditorStore } from "@/store";
+import { toast } from "sonner";
 
 function Banner() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { userSubscription, userDesigns } = useEditorStore();
+
+  console.log(userSubscription, "userSubscription");
+
   const handleCreateNewDesign = async () => {
+    if (userDesigns?.length >= 5 && !userSubscription.isPremium) {
+      toast.error("Please upgrade to premium!", {
+        description: "You need to upgrade to premium to create more designs",
+      });
+
+      return;
+    }
     if (loading) return;
     try {
       setLoading(true);
 
-      const intialDesingData = {
-        name: "Untitled Design",
+      const initialDesignData = {
+        name: "Untitled design - Youtube Thumbnail",
         canvasData: null,
         width: 825,
         height: 465,
-        category: "project",
+        category: "youtube_thumbnail",
       };
 
-      const newDesign = await saveDesign(intialDesingData);
+      const newDesign = await saveDesign(initialDesignData);
 
       if (newDesign?.success) {
         router.push(`/editor/${newDesign?.data?._id}`);
@@ -30,11 +43,14 @@ function Banner() {
       } else {
         throw new Error("Failed to create new design");
       }
-    } catch (error) {
-      console.log(error);
+
+      console.log(newDesign, "newDesign");
+    } catch (e) {
+      console.log(e);
       setLoading(false);
     }
   };
+
   return (
     <div className="rounded-xl overflow-hidden bg-gradient-to-r from-[#00c4cc] via-[#8b3dff] to-[#5533ff] text-white p-4 sm:p-6 md:p-8 text-center">
       <div className="flex flex-col sm:flex-row justify-center items-center mb-2 sm:mb-4">
@@ -48,10 +64,10 @@ function Banner() {
       </h2>
       <Button
         onClick={handleCreateNewDesign}
-        className="text-[#8b3dff] bg-white hover:bg-gray-100 rounded-lg px-3 py-2 sm:px-6 sm:py-2.5"
+        className="text-[#8b3dff] bg-white hover:bg-gray-100 rounded-lg px-4 py-2 sm:px-6 sm:py-2.5"
       >
         {loading && <Loader className="w-4 h-4" />}
-        Start Designing
+        Start Desiging
       </Button>
     </div>
   );

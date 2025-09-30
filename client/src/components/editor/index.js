@@ -7,20 +7,36 @@ import Sidebar from "./sidebar";
 import { useCallback, useEffect, useState } from "react";
 import { useEditorStore } from "@/store";
 import { getUserDesignByID } from "@/services/design-service";
+import Properties from "./properties";
+import SubscriptionModal from "../subscription/premium-modal";
 
-export default function MainEditor() {
+function MainEditor() {
   const params = useParams();
   const router = useRouter();
   const designId = params?.slug;
+
   const [isLoading, setIsLoading] = useState(!!designId);
   const [loadAttempted, setLoadAttempted] = useState(false);
   const [error, setError] = useState(null);
 
-  const { canvas, setDesignId, resetStore, setName } = useEditorStore();
+  const {
+    canvas,
+    setDesignId,
+    resetStore,
+    setName,
+    setShowProperties,
+    showProperties,
+    isEditing,
+    setShowPremiumModal,
+    showPremiumModal,
+  } = useEditorStore();
+
   useEffect(() => {
-    // reset the store
+    //reset the store
     resetStore();
-    // set designId
+
+    //set the design id
+
     if (designId) setDesignId(designId);
 
     return () => {
@@ -42,29 +58,33 @@ export default function MainEditor() {
         }
       }, 5000);
 
-      return () => {
-        clearTimeout(timer);
-      };
+      return () => clearTimeout(timer);
     }
   }, [isLoading, canvas, designId]);
 
   useEffect(() => {
-    console.log("Canvas is now available in editor");
+    if (canvas) {
+      console.log("Canvas is now available in editor");
+    }
   }, [canvas]);
 
-  // load the design
+  //load the design ->
   const loadDesign = useCallback(async () => {
     if (!canvas || !designId || loadAttempted) return;
-
     try {
       setIsLoading(true);
       setLoadAttempted(true);
 
       const response = await getUserDesignByID(designId);
       const design = response.data;
+
       if (design) {
-        setDesignId(designId);
+        //update name
         setName(design.name);
+
+        //set the design ID just incase after getting the data
+        setDesignId(designId);
+
         try {
           if (design.canvasData) {
             canvas.clear();
@@ -74,12 +94,14 @@ export default function MainEditor() {
                 height: design.height,
               });
             }
+
             const canvasData =
               typeof design.canvasData === "string"
                 ? JSON.parse(design.canvasData)
                 : design.canvasData;
 
-            const hasObjects = design.objects && design.objects.length > 0;
+            const hasObjects =
+              canvasData.objects && canvasData.objects.length > 0;
 
             if (canvasData.background) {
               canvas.backgroundColor = canvasData.background;
@@ -91,6 +113,7 @@ export default function MainEditor() {
               canvas.renderAll();
               return true;
             }
+
             canvas
               .loadFromJSON(canvasData)
               .then((canvas) => canvas.requestRenderAll());
@@ -101,40 +124,73 @@ export default function MainEditor() {
             canvas.backgroundColor = "#ffffff";
             canvas.renderAll();
           }
-        } catch (error) {
-          console.error("Error loading canvas", error);
+        } catch (e) {
+          console.error("Error loading canvas", e);
           setError("Error loading canvas");
         } finally {
           setIsLoading(false);
         }
       }
-
-      console.log(response);
-    } catch (error) {
-      console.error("Failed to load design", error);
-      setError("Failed to load design");
+    } catch (e) {
+      console.error("Failed to load design", e);
+      setError("failed to load design");
       setIsLoading(false);
     }
   }, [canvas, designId, loadAttempted, setDesignId]);
 
   useEffect(() => {
-    if (canvas && designId && !loadAttempted) {
+    if (designId && canvas && !loadAttempted) {
       loadDesign();
     } else if (!designId) {
       router.replace("/");
     }
-  }, [canvas, designId, loadAttempted, loadDesign, router]);
+  }, [canvas, designId, loadDesign, loadAttempted, router]);
+
+  useEffect(() => {
+    if (!canvas) return;
+
+    const handleSelectionCreated = () => {
+      const activeObject = canvas.getActiveObject();
+
+      if (activeObject) {
+        setShowProperties(true);
+      }
+    };
+
+    const handleSelectionCleared = () => {
+      setShowProperties(false);
+    };
+
+    canvas.on("selection:created", handleSelectionCreated);
+    canvas.on("selection:updated", handleSelectionCreated);
+    canvas.on("selection:cleared", handleSelectionCleared);
+
+    return () => {
+      canvas.off("selection:created", handleSelectionCreated);
+      canvas.off("selection:updated", handleSelectionCreated);
+      canvas.off("selection:cleared", handleSelectionCleared);
+    };
+  }, [canvas]);
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <Header />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
+        {isEditing && <Sidebar />}
+
         <div className="flex-1 flex flex-col overflow-hidden relative">
           <main className="flex-1 overflow-hidden bg-[#f0f0f0] flex items-center justify-center">
             <Canvas />
           </main>
         </div>
       </div>
+      {showProperties && isEditing && <Properties />}
+      <SubscriptionModal
+        isOpen={showPremiumModal}
+        onClose={setShowPremiumModal}
+      />
     </div>
   );
 }
+
+export default MainEditor;

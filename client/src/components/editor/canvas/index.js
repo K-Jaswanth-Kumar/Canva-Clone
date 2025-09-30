@@ -1,35 +1,47 @@
 "use client";
 
-import { initializeFabric } from "@/fabric/fabric-utils";
+import { customizeBoundingBox, initializeFabric } from "@/fabric/fabric-utils";
 import { useEditorStore } from "@/store";
 import { useEffect, useRef } from "react";
 
-export default function Canvas() {
+function Canvas() {
   const canvasRef = useRef(null);
   const canvasContainerRef = useRef(null);
   const fabricCanvasRef = useRef(null);
   const initAttemptedRef = useRef(false);
 
-  const { setCanvas } = useEditorStore();
+  const { setCanvas, markAsModified } = useEditorStore();
+
   useEffect(() => {
     const cleanUpCanvas = () => {
       if (fabricCanvasRef.current) {
         try {
-          fabricCanvasRef.current.dispose();
-        } catch (error) {
-          console.error("Error disposing canvas", error);
+          fabricCanvasRef.current.off("object:added");
+          fabricCanvasRef.current.off("object:modified");
+          fabricCanvasRef.current.off("object:removed");
+          fabricCanvasRef.current.off("path:created");
+        } catch (e) {
+          console.error("Error remvoing event listeners", e);
         }
+
+        try {
+          fabricCanvasRef.current.dispose();
+        } catch (e) {
+          console.error("Error disposing canvas", e);
+        }
+
         fabricCanvasRef.current = null;
         setCanvas(null);
       }
     };
+
     cleanUpCanvas();
 
-    // reset init flag
+    //reset init flag
     initAttemptedRef.current = false;
 
-    // init canvas
-    const initCanvas = async () => {
+    //init our canvas
+    const initcanvas = async () => {
       if (
         typeof window === undefined ||
         !canvasRef.current ||
@@ -37,6 +49,7 @@ export default function Canvas() {
       ) {
         return;
       }
+
       initAttemptedRef.current = true;
 
       try {
@@ -44,27 +57,41 @@ export default function Canvas() {
           canvasRef.current,
           canvasContainerRef.current
         );
+
         if (!fabricCanvas) {
-          console.error("Failed to initialize Fabric");
+          console.error("Failed to initialize Fabric.js canvas");
 
           return;
         }
 
         fabricCanvasRef.current = fabricCanvas;
+        //set the canvas in store
         setCanvas(fabricCanvas);
 
-        console.log("Canvas is intialized");
-      } catch (error) {
-        console.error("Failed to init canvas", error);
+        //apply custom style for the controls
+        customizeBoundingBox(fabricCanvas);
+
+        //set up event listeners
+        const handleCanvasChange = () => {
+          markAsModified();
+        };
+
+        fabricCanvas.on("object:added", handleCanvasChange);
+        fabricCanvas.on("object:modified", handleCanvasChange);
+        fabricCanvas.on("object:removed", handleCanvasChange);
+        fabricCanvas.on("path:created", handleCanvasChange);
+      } catch (e) {
+        console.error("Failed to init canvas", e);
       }
     };
 
     const timer = setTimeout(() => {
-      initCanvas();
+      initcanvas();
     }, 50);
 
     return () => {
       clearTimeout(timer);
+      cleanUpCanvas();
     };
   }, []);
 
@@ -77,3 +104,5 @@ export default function Canvas() {
     </div>
   );
 }
+
+export default Canvas;
